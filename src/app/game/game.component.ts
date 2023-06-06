@@ -5,6 +5,7 @@ import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player
 import { Firestore, addDoc, collection, collectionData, doc, setDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 
 @Component({
@@ -13,24 +14,31 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./game.component.scss'],
 })
 export class GameComponent implements OnInit {
-  firestore: Firestore = inject(Firestore);
+  varFirestore: Firestore = inject(Firestore);
   games$: Observable<any[]>;
   pickCardAnimation = false;
   game: Game;
   currentCard: string = '';
+  gameId:string;
 
-  constructor(private route: ActivatedRoute, public dialog: MatDialog) {}
+  constructor(private route: ActivatedRoute, public dialog: MatDialog, private firestore: AngularFirestore) {}
 
   ngOnInit(): void {
     this.newGame();
     this.route.params.subscribe((params) => {
-      console.log(params['id']);
+      console.log(params);
+      this.gameId = params['id'];
 
-      const aCollection = collection(this.firestore, 'games')
+      const aCollection = collection(this.varFirestore, 'games')
       this.games$ = collectionData(aCollection);
 
-      this.games$.doc(params['id']).subscribe((game) => {
+
+      this.games$.subscribe((game: any) => {
         console.log('game update', game);
+        this.game.currentPlayer = game.currentPlayer;
+        this.game.playedCards = game.playedCards;
+        this.game.players = game.players;
+        this.game.stack = game.stack;
       });
 
     });
@@ -38,8 +46,6 @@ export class GameComponent implements OnInit {
 
   newGame() {
     this.game = new Game();
-    //const itemCollection = collection(this.firestore, 'games');
-    //addDoc(itemCollection, this.game.toJson());
   }
 
   takeCard() {
@@ -63,7 +69,16 @@ export class GameComponent implements OnInit {
     dialogRef.afterClosed().subscribe((name: string) => {
       if (name && name.length > 0) {
         this.game.players.push(name);
+        this.saveGame();
       }
     });
+  }
+
+  saveGame() {
+    this
+    .firestore
+    .collection('games')
+    .doc(this.gameId)
+    .update(this.game.toJson());
   }
 }
