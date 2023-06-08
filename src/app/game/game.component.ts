@@ -16,9 +16,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 export class GameComponent implements OnInit {
   varFirestore: Firestore = inject(Firestore);
   games$: Observable<any[]>;
-  pickCardAnimation = false;
   game: Game;
-  currentCard: string = '';
   gameId:string;
 
   constructor(private route: ActivatedRoute, public dialog: MatDialog, private firestore: AngularFirestore) {}
@@ -33,12 +31,19 @@ export class GameComponent implements OnInit {
       this.games$ = collectionData(aCollection);
 
 
-      this.games$.subscribe((game: any) => {
+      this
+      .firestore
+      .collection('games')
+      .doc(this.gameId)
+      .valueChanges()
+      .subscribe((game: any) => {
         console.log('game update', game);
         this.game.currentPlayer = game.currentPlayer;
         this.game.playedCards = game.playedCards;
         this.game.players = game.players;
         this.game.stack = game.stack;
+        this.game.pickCardAnimation = game.pickCardAnimation;
+        this.game.currentCard = game.currentCard;
       });
 
     });
@@ -49,16 +54,18 @@ export class GameComponent implements OnInit {
   }
 
   takeCard() {
-    if (!this.pickCardAnimation) {
-      this.currentCard = this.game.stack.pop();
-      this.pickCardAnimation = true;
+    if (!this.game.pickCardAnimation) {
+      this.game.currentCard = this.game.stack.pop();
+      this.game.pickCardAnimation = true;
 
       this.game.currentPlayer++;
-      this.game.currentPlayer =
-        this.game.currentPlayer % this.game.players.length;
+      this.game.currentPlayer = this.game.currentPlayer % this.game.players.length;
+
+      this.saveGame();
       setTimeout(() => {
-        this.pickCardAnimation = false;
-        this.game.playedCards.push(this.currentCard);
+        this.game.pickCardAnimation = false;
+        this.game.playedCards.push(this.game.currentCard);
+        this.saveGame();
       }, 1000);
     }
   }

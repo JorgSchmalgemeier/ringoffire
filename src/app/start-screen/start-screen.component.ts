@@ -15,7 +15,8 @@ export class StartScreenComponent {
   newGame() {
     //Start game
     let game = new Game();
-    this.firestore
+    this
+    .firestore
     .collection('games')
     .add(game.toJson())
     .then((gameInfo:any) => {
