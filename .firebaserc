@@ -1,13 +1,4 @@
 {
-  "targets": {
-    "ring-of-fire-bffba": {
-      "hosting": {
-        "ringoffire": [
-          "ring-of-fire-bffba"
-        ]
-      }
-    }
-  },
   "projects": {
     "default": "ring-of-fire-bffba"
   }

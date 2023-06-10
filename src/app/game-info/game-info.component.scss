@@ -2,4 +2,12 @@
   display: block;
   margin: 0;
   padding: 0 16px;
+
+  @media (max-width: 720px) {
+    min-height: 70px;
+  }
+}
+
+.mat-card {
+
 }
